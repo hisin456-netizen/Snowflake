@@ -1,0 +1,110 @@
+-- ======================================================================
+-- Oracle 데이터 확인용 쿼리 (DBeaver)
+-- 접속: localhost:1521 / 서비스 FREEPDB1 (SH 스키마 조회 권한 계정)
+-- 기준: airflow/dags/oracle_table.xml 의 SQL (data 4개 + meta 9개)
+-- 실행: 문장 하나씩 커서를 두고 Ctrl+Enter
+-- 바인드 변수(:BASE_DATE)는 DBeaver 가 값 입력창을 띄운다.
+--   SH_COSTS     : YYYYMMDD (예: 20261110)
+--   SH_COSTS_MM  : YYYYMM   (예: 202611)
+--   SH_COSTS_YYYY: YYYY     (예: 2026)
+-- ======================================================================
+
+
+-- ===== 1. 샘플 데이터 범위 확인 =====
+-- SH.COSTS 의 TIME_ID 실제 범위. DAG 는 TIME_ID + 365*4 가 BASE_DATE 가 되는 행을 가져오므로,
+-- 아래 범위에 365*4 일을 더한 날짜가 base_date 로 들어와야 데이터가 조회된다.
+SELECT MIN(TIME_ID)                  AS MIN_TIME_ID
+     , MAX(TIME_ID)                  AS MAX_TIME_ID
+     , MIN(TIME_ID) + (365*4)        AS MIN_BASE_DATE   -- DAG 에서 조회 가능한 가장 이른 base_date
+     , MAX(TIME_ID) + (365*4)        AS MAX_BASE_DATE   -- DAG 에서 조회 가능한 가장 늦은 base_date
+     , COUNT(*)                      AS TOTAL_CNT
+  FROM SH.COSTS;
+
+
+-- ===== 2. 테이블별 건수 =====
+SELECT 'SH.PROMOTIONS' AS TBL, COUNT(*) AS CNT FROM SH.PROMOTIONS
+UNION ALL
+SELECT 'SH.COSTS'      AS TBL, COUNT(*) AS CNT FROM SH.COSTS;
+
+
+-- ===== 3. SH_PROMOTIONS (FULL) : 전체 조회 =====
+SELECT PROMO_ID, PROMO_NAME, PROMO_SUBCATEGORY, PROMO_SUBCATEGORY_ID
+     , PROMO_CATEGORY, PROMO_CATEGORY_ID, PROMO_COST
+     , PROMO_BEGIN_DATE, PROMO_END_DATE, PROMO_TOTAL, PROMO_TOTAL_ID
+  FROM SH.PROMOTIONS;
+
+
+-- ===== 4. SH_COSTS (PERIOD, 일 단위) =====
+-- 4-1. DAG 와 동일한 쿼리. :BASE_DATE = YYYYMMDD
+SELECT PROD_ID, TIME_ID, PROMO_ID, CHANNEL_ID, UNIT_COST, UNIT_PRICE
+  FROM SH.COSTS
+ WHERE TIME_ID + (365*4) >= TO_DATE(:BASE_DATE, 'YYYYMMDD')
+   AND TIME_ID + (365*4) <  TO_DATE(:BASE_DATE, 'YYYYMMDD') + 1;
+
+-- 4-2. 건수 + 합계 (log 의 통계 항목과 비교용: UNIT_COST, UNIT_PRICE 합계)
+SELECT COUNT(*)        AS ROW_CNT
+     , SUM(UNIT_COST)  AS SUM_UNIT_COST
+     , SUM(UNIT_PRICE) AS SUM_UNIT_PRICE
+  FROM SH.COSTS
+ WHERE TIME_ID + (365*4) >= TO_DATE(:BASE_DATE, 'YYYYMMDD')
+   AND TIME_ID + (365*4) <  TO_DATE(:BASE_DATE, 'YYYYMMDD') + 1;
+
+-- 4-3. TIME_ID 일자별 건수와 그에 대응하는 base_date (어느 날짜를 넣어야 데이터가 나오는지 확인)
+SELECT TRUNC(TIME_ID)                              AS TIME_ID_DAY
+     , TO_CHAR(TRUNC(TIME_ID) + (365*4), 'YYYYMMDD') AS BASE_DATE
+     , COUNT(*)                                    AS ROW_CNT
+  FROM SH.COSTS
+ GROUP BY TRUNC(TIME_ID)
+ ORDER BY TIME_ID_DAY;
+
+
+-- ===== 5. SH_COSTS_MM (PERIOD, 월 단위) : :BASE_DATE = YYYYMM =====
+SELECT PROD_ID, TIME_ID, PROMO_ID, CHANNEL_ID, UNIT_COST, UNIT_PRICE
+  FROM SH.COSTS
+ WHERE TO_CHAR(TIME_ID + (365*4), 'YYYYMM') = :BASE_DATE;
+
+-- 월별 건수 (base_date 후보 확인)
+SELECT TO_CHAR(TIME_ID + (365*4), 'YYYYMM') AS BASE_DATE, COUNT(*) AS ROW_CNT
+  FROM SH.COSTS
+ GROUP BY TO_CHAR(TIME_ID + (365*4), 'YYYYMM')
+ ORDER BY 1;
+
+
+-- ===== 6. SH_COSTS_YYYY (PERIOD, 연 단위) : :BASE_DATE = YYYY =====
+SELECT PROD_ID, TIME_ID, PROMO_ID, CHANNEL_ID, UNIT_COST, UNIT_PRICE
+  FROM SH.COSTS
+ WHERE TO_CHAR(TIME_ID + (365*4), 'YYYY') = :BASE_DATE;
+
+-- 연도별 건수 (base_date 후보 확인)
+SELECT TO_CHAR(TIME_ID + (365*4), 'YYYY') AS BASE_DATE, COUNT(*) AS ROW_CNT
+  FROM SH.COSTS
+ GROUP BY TO_CHAR(TIME_ID + (365*4), 'YYYY')
+ ORDER BY 1;
+
+
+-- ===== 7. 메타데이터 (FULL) : 각 뷰의 SH 소유 건수 =====
+-- oracle_table.xml 의 meta SQL 과 같은 조건 (OWNER = 'SH')
+SELECT 'ALL_TABLES'       AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_TABLES       WHERE OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_TAB_COLUMNS'  AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_TAB_COLUMNS  WHERE OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_CONSTRAINTS'  AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_CONSTRAINTS  WHERE OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_CONS_COLUMNS' AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_CONS_COLUMNS WHERE OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_INDEXES'      AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_INDEXES      WHERE OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_IND_COLUMNS'  AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_IND_COLUMNS  WHERE INDEX_OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_TAB_COMMENTS' AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_TAB_COMMENTS WHERE OWNER = 'SH'
+UNION ALL
+SELECT 'ALL_COL_COMMENTS' AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_COL_COMMENTS WHERE OWNER = 'SH'
+UNION ALL
+-- ALL_TAB_PARTITIONS 는 DAG 쿼리에 owner 필터가 없다 (미확정 항목: 코드 반영 전 확인 필요)
+SELECT 'ALL_TAB_PARTITIONS' AS VIEW_NAME, COUNT(*) AS CNT FROM ALL_TAB_PARTITIONS;
+
+
+-- ===== 8. 메타 상세 조회 예시 =====
+SELECT * FROM ALL_TABLES       WHERE OWNER = 'SH';
+SELECT * FROM ALL_TAB_COLUMNS  WHERE OWNER = 'SH' ORDER BY TABLE_NAME, COLUMN_ID;
+SELECT TABLE_OWNER, TABLE_NAME, HIGH_VALUE_CLOB, HIGH_VALUE_JSON FROM ALL_TAB_PARTITIONS;

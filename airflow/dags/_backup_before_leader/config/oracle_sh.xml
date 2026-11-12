@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 원천 설정 파일: 설계는 .claude/docs/CreateDag.md 참고. 파일 하나당 DAG 하나(dag_id = {name}_to_rustfs) -->
+<source>
+    <name>oracle_sh</name>                      <!-- 원천명 (경로/DAG ID에 사용) -->
+    <source-type>ORACLE</source-type>
+    <connection>oracle_default</connection>      <!-- Airflow Connection ID -->
+
+    <target>
+        <type>S3</type>
+        <connection>rustfs</connection>          <!-- Airflow Connection ID -->
+        <bucket>oracle-raw</bucket>
+    </target>
+
+    <split-rows>10000</split-rows>               <!-- 파일 하나당 최대 행 수 -->
+
+    <!-- meta: 비워 두면 스펙 그대로 owner 필터 없이 조회 (스펙 미확정 항목) -->
+    <meta>
+        <owner>SH</owner>
+        <table><schema>SYS</schema><name>ALL_TABLES</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_TABLES</sql></table>
+        <table><schema>SYS</schema><name>ALL_TAB_COLUMNS</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_TAB_COLUMNS</sql></table>
+        <table><schema>SYS</schema><name>ALL_CONSTRAINTS</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_CONSTRAINTS</sql></table>
+        <table><schema>SYS</schema><name>ALL_CONS_COLUMNS</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_CONS_COLUMNS</sql></table>
+        <table><schema>SYS</schema><name>ALL_INDEXES</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_INDEXES</sql></table>
+        <table><schema>SYS</schema><name>ALL_IND_COLUMNS</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_IND_COLUMNS</sql></table>
+        <table><schema>SYS</schema><name>ALL_TAB_COMMENTS</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_TAB_COMMENTS</sql></table>
+        <table><schema>SYS</schema><name>ALL_COL_COMMENTS</name><load-type>FULL</load-type><sql>SELECT * FROM ALL_COL_COMMENTS</sql></table>
+    </meta>
+
+    <tables>
+        <table>
+            <schema>SH</schema>
+            <name>PROMOTIONS</name>
+            <load-type>FULL</load-type>
+            <load-range-day/>
+            <sum-columns>PROMO_COST</sum-columns>   <!-- log에 SUM을 남길 숫자형 컬럼 (쉼표 구분) -->
+            <sql><![CDATA[
+                SELECT
+                    PROMO_ID,
+                    PROMO_NAME,
+                    PROMO_SUBCATEGORY,
+                    PROMO_SUBCATEGORY_ID,
+                    PROMO_CATEGORY,
+                    PROMO_CATEGORY_ID,
+                    PROMO_COST,
+                    PROMO_BEGIN_DATE,
+                    PROMO_END_DATE,
+                    PROMO_TOTAL,
+                    PROMO_TOTAL_ID
+                FROM SH.PROMOTIONS
+            ]]></sql>
+        </table>
+
+        <table>
+            <schema>SH</schema>
+            <name>COSTS</name>
+            <load-type>PERIOD</load-type>
+            <load-range-day>3</load-range-day>
+            <sum-columns>UNIT_COST,UNIT_PRICE</sum-columns>
+            <sql><![CDATA[
+                SELECT
+                    PROD_ID,
+                    TIME_ID,
+                    PROMO_ID,
+                    CHANNEL_ID,
+                    UNIT_COST,
+                    UNIT_PRICE
+                FROM SH.COSTS
+                WHERE TIME_ID >= TO_DATE(:BASE_DATE, 'YYYYMMDD')
+                  AND TIME_ID <  TO_DATE(:BASE_DATE, 'YYYYMMDD') + 1
+            ]]></sql>
+        </table>
+    </tables>
+</source>

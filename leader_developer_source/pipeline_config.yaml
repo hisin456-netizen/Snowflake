@@ -1,0 +1,89 @@
+version: "1.0"
+
+# 1. 원천 및 타겟 설정
+source:
+  name: oracle
+  type: SQL
+  system_type: ORACLE
+  connection_id: oracle_default
+  table_config_file: oracle_table.xml
+
+target:
+  # 현재 실습 환경은 RustFS(S3 호환)를 사용
+  type: S3
+  connection_id: rustfs_default
+  bucket: airflow-data
+  endpoint_url: "http://rustfs:9000"
+  region: us-east-1
+  format: JSON_GZ
+
+# 2. 공통 실행 및 파일 설정
+defaults:
+  max_parallel: 5
+  chunk_size: 10000
+  timezone: Asia/Seoul
+  generation_timestamp:
+    format: "%Y%m%d%H%M%S"
+    scope: DAG_RUN
+  job_id:
+    source: AIRFLOW_RUN_ID
+    filename_safe: true
+    replace_invalid_chars_with: "_"
+  part_number:
+    start: 1
+    padding: 8
+    fill_char: "0"
+  file:
+    extension: ".json.gz"
+    data_format: JSON
+    compression: GZIP
+    encoding: UTF-8
+
+# 3. 저장 경로 및 파일명 규칙
+# 경로 템플릿 변수는 DAG 코드에서 치환
+storage:
+  paths:
+    data:
+      full: "{root}/{source}/data/{schema}/{table}"
+      period: "{root}/{source}/data/{schema}/{table}/{base_date}"
+    log:
+      full: "{root}/{source}/log/{schema}/{table}"
+      period: "{root}/{source}/log/{schema}/{table}/{base_date}"
+    meta:
+      full: "{root}/{source}/meta/{metadata_table}/{run_date}"
+    translog:
+      success: "{root}/{source}/translog/success/{run_date}"
+      fail: "{root}/{source}/translog/fail/{run_date}"
+  filenames:
+    full: "{schema}_{table}_{generation_ts}_{part_no}.json.gz"
+    period: "{schema}_{table}_{generation_ts}_{base_date}_{part_no}.json.gz"
+    meta: "{metadata_table}_{generation_ts}_{part_no}.json.gz"
+    translog: "{source}_translog_{generation_ts}_{part_no}.json.gz"
+  delete_policy:
+    data: DELETE_EXISTING_FILES_BEFORE_LOAD
+    log: DELETE_EXISTING_FILES_BEFORE_LOAD
+    meta: DELETE_EXISTING_FILES_BEFORE_LOAD
+    translog: KEEP_EXISTING_FILES
+
+# 4. 분할 파일별 통계 설정
+statistics:
+  enabled: true
+  scope: PER_FILE
+  record_count: true
+  null_count: true
+  sum:
+    enabled: true
+    columns_from_table_config: true
+  table_level_aggregation: false
+  match_data_file_by:
+    - job_id
+    - base_date
+    - part_no
+
+# 7. translog 설정
+translog:
+  enabled: true
+  success_path_status: SUCCESS
+  fail_path_status: FAILED
+  delete_existing: false
+  snowpipe_trigger: FUTURE_DEFINITION

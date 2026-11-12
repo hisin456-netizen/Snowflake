@@ -1,0 +1,2 @@
+-- 접속 확인용 (읽기만 함). IDE 확장에서 이 파일을 열고 실행한다.
+SELECT CURRENT_USER(), CURRENT_ROLE(), CURRENT_WAREHOUSE(), CURRENT_DATABASE();

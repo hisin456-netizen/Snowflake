@@ -1,0 +1,182 @@
+[
+    {
+        "host": "cx04977.ap-northeast-2.aws.snowflakecomputing.com",
+        "port": 443,
+        "type": "SNOWFLAKE_DEPLOYMENT"
+    },
+    {
+        "host": "gejagxs-mm38252.snowflakecomputing.com",
+        "port": 443,
+        "type": "SNOWFLAKE_DEPLOYMENT_REGIONLESS"
+    },
+    {
+        "host": "sfc-kr-ds1-14-customer-stage.s3.amazonaws.com",
+        "port": 443,
+        "type": "STAGE"
+    },
+    {
+        "host": "sfc-kr-ds1-14-customer-stage.s3.ap-northeast-2.amazonaws.com",
+        "port": 443,
+        "type": "STAGE"
+    },
+    {
+        "host": "sfc-kr-ds1-14-customer-stage.s3-ap-northeast-2.amazonaws.com",
+        "port": 443,
+        "type": "STAGE"
+    },
+    {
+        "host": "sfc-repo.snowflakecomputing.com",
+        "port": 443,
+        "type": "SNOWSQL_REPO"
+    },
+    {
+        "host": "client-telemetry.snowflakecomputing.com",
+        "port": 443,
+        "type": "OUT_OF_BAND_TELEMETRY"
+    },
+    {
+        "host": "ocsp.snowflakecomputing.com",
+        "port": 80,
+        "type": "OCSP_CACHE"
+    },
+    {
+        "host": "api-9e33b144.duosecurity.com",
+        "port": 443,
+        "type": "DUO_SECURITY"
+    },
+    {
+        "host": "uw2.devicemanagement.duosecurity.com",
+        "port": 443,
+        "type": "DUO_SECURITY"
+    },
+    {
+        "host": "ec1.devicemanagement.duosecurity.com",
+        "port": 443,
+        "type": "DUO_SECURITY"
+    },
+    {
+        "host": "snowconvert.snowflake.com",
+        "port": 443,
+        "type": "SNOWCONVERT"
+    },
+    {
+        "host": "GEJAGXS-MM38252.registry.snowflakecomputing.com",
+        "port": 443,
+        "type": "SPCS_REGISTRY_REGIONLESS"
+    },
+    {
+        "host": "*.gejagxs-mm38252.ap-northeast-2.aws.snowflake.com",
+        "port": 443,
+        "type": "ACCOUNT_PUBLIC_WILDCARD"
+    },
+    {
+        "host": "gejagxs-mm38252.ap-northeast-2.aws.snowflake.com",
+        "port": 443,
+        "type": "ACCOUNT_PUBLIC"
+    },
+    {
+        "host": "CX04977.ingest.icnagu.snowflakecomputing.com",
+        "port": 443,
+        "type": "STREAMING_ROWSET"
+    },
+    {
+        "host": "ocsp.r2m04.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "crl3.digicert.com",
+        "port": 80,
+        "type": "CRL_DISTRIBUTION_POINT"
+    },
+    {
+        "host": "crl4.digicert.com",
+        "port": 80,
+        "type": "CRL_DISTRIBUTION_POINT"
+    },
+    {
+        "host": "ocsp.rootg2.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "ocsp.r2m02.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "crl.rootg2.amazontrust.com",
+        "port": 80,
+        "type": "CRL_DISTRIBUTION_POINT"
+    },
+    {
+        "host": "ocsp.r2m01.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "ocsp.digicert.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "ocsp.sca1b.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "ocsp.rootca1.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "ocsp.r2m03.amazontrust.com",
+        "port": 80,
+        "type": "OCSP_RESPONDER"
+    },
+    {
+        "host": "crl.r2m04.amazontrust.com",
+        "port": 80,
+        "type": "CRL_DISTRIBUTION_POINT"
+    },
+    {
+        "host": "crl.rootca1.amazontrust.com",
+        "port": 80,
+        "type": "CRL_DISTRIBUTION_POINT"
+    },
+    {
+        "host": "apps-api.c1.ap-northeast-2.aws.app.snowflake.com",
+        "port": 443,
+        "type": "SNOWSIGHT_DEPLOYMENT"
+    },
+    {
+        "host": "app.snowflake.com",
+        "port": 443,
+        "type": "SNOWSIGHT_DEPLOYMENT"
+    },
+    {
+        "host": "gejagxs-mm38252.openflow.icnagu.snowflakecomputing.com",
+        "port": 443,
+        "type": "OPENFLOW"
+    },
+    {
+        "host": "gejagxs-mm38252.telemetry.icnagu.snowflakecomputing.com",
+        "port": 443,
+        "type": "EXTERNAL_TELEMETRY"
+    },
+    {
+        "host": "dcp.gejagxs-mm38252.ap-northeast-2.aws.snowflake.com",
+        "port": 443,
+        "type": "DCP_CONTROL_PLANE"
+    },
+    {
+        "host": "dcp-proxy.gejagxs-mm38252.ap-northeast-2.aws.snowflake.com",
+        "port": 443,
+        "type": "DCP_PROXY"
+    },
+    {
+        "host": "dcp-proxy-fallback.gejagxs-mm38252.ap-northeast-2.aws.snowflake.com",
+        "port": 443,
+        "type": "DCP_PROXY_FALLBACK"
+    }
+]

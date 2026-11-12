@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose config:*)",
+      "Bash(docker exec airflow airflow dags list:*)",
+      "Bash(docker exec airflow airflow dags list-import-errors:*)",
+      "Bash(docker exec airflow airflow dags test:*)"
+    ],
+    "ask": [
+      "Bash(docker compose down:*)",
+      "Bash(docker compose rm:*)"
+    ],
+    "deny": [
+      "Bash(docker compose down -v:*)",
+      "Bash(docker compose down --volumes:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(docker volume prune:*)",
+      "Bash(docker system prune:*)",
+      "Edit(docker-compose.old.yml)",
+      "Edit(oracle/sample-schemas/**)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "bash .claude/hooks/format-edits.sh" }
+        ]
+      }
+    ]
+  }
+}

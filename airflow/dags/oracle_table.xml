@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sql-config version="1.0">
+    <!-- 1. 데이터 테이블 설정 -->
+    <data>
+        <table>
+            <id>SH_PROMOTIONS</id>
+            <schema>SH</schema>
+            <name>PROMOTIONS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[
+                SELECT
+                    PROMO_ID,
+                    PROMO_NAME,
+                    PROMO_SUBCATEGORY,
+                    PROMO_SUBCATEGORY_ID,
+                    PROMO_CATEGORY,
+                    PROMO_CATEGORY_ID,
+                    PROMO_COST,
+                    PROMO_BEGIN_DATE,
+                    PROMO_END_DATE,
+                    PROMO_TOTAL,
+                    PROMO_TOTAL_ID
+                FROM SH.PROMOTIONS
+            ]]></sql>
+        </table>
+
+        <table>
+            <id>SH_COSTS</id>
+            <schema>SH</schema>
+            <name>COSTS</name>
+            <load-type>PERIOD</load-type>
+            <auto-load-range>3D</auto-load-range>
+            <statistics>
+                <sum-columns>
+                    <column>UNIT_COST</column>
+                    <column>UNIT_PRICE</column>
+                </sum-columns>
+            </statistics>
+            <sql><![CDATA[
+                SELECT
+                    PROD_ID,
+                    TIME_ID,
+                    PROMO_ID,
+                    CHANNEL_ID,
+                    UNIT_COST,
+                    UNIT_PRICE
+                FROM SH.COSTS
+                WHERE TIME_ID + (365*4) >= TO_DATE(:BASE_DATE, 'YYYYMMDD')
+                  AND TIME_ID + (365*4) <  TO_DATE(:BASE_DATE, 'YYYYMMDD') + 1
+            ]]></sql>
+        </table>
+
+        <table>
+            <id>SH_COSTS_MM</id>
+            <schema>SH</schema>
+            <name>COSTS_MM</name>
+            <load-type>PERIOD</load-type>
+            <auto-load-range>3M</auto-load-range>
+            <statistics>
+                <sum-columns>
+                    <column>UNIT_COST</column>
+                    <column>UNIT_PRICE</column>
+                </sum-columns>
+            </statistics>
+            <sql><![CDATA[
+                SELECT
+                    PROD_ID,
+                    TIME_ID,
+                    PROMO_ID,
+                    CHANNEL_ID,
+                    UNIT_COST,
+                    UNIT_PRICE
+                FROM SH.COSTS
+                WHERE TO_CHAR(TIME_ID + (365*4), 'YYYYMM') = :BASE_DATE
+            ]]></sql>
+        </table>
+
+        <table>
+            <id>SH_COSTS_YYYY</id>
+            <schema>SH</schema>
+            <name>SH_COSTS_YYYY</name>
+            <load-type>PERIOD</load-type>
+            <auto-load-range>3Y</auto-load-range>
+            <statistics>
+                <sum-columns>
+                    <column>UNIT_COST</column>
+                    <column>UNIT_PRICE</column>
+                </sum-columns>
+            </statistics>
+            <sql><![CDATA[
+                SELECT
+                    PROD_ID,
+                    TIME_ID,
+                    PROMO_ID,
+                    CHANNEL_ID,
+                    UNIT_COST,
+                    UNIT_PRICE
+                FROM SH.COSTS
+                WHERE TO_CHAR(TIME_ID + (365*4), 'YYYY') = :BASE_DATE
+            ]]></sql>
+        </table>
+
+    </data>
+
+    <!-- Oracle 메타데이터 수집 대상 설정 -->
+    <metadata>
+        <table>
+            <id>ALL_TABLES</id>
+            <schema/>
+            <name>ALL_TABLES</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_TABLES WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_TAB_COLUMNS</id>
+            <schema/>
+            <name>ALL_TAB_COLUMNS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_TAB_COLUMNS WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_CONSTRAINTS</id>
+            <schema/>
+            <name>ALL_CONSTRAINTS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_CONSTRAINTS WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_CONS_COLUMNS</id>
+            <schema/>
+            <name>ALL_CONS_COLUMNS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_CONS_COLUMNS WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_INDEXES</id>
+            <schema/>
+            <name>ALL_INDEXES</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_INDEXES WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_IND_COLUMNS</id>
+            <schema/>
+            <name>ALL_IND_COLUMNS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_IND_COLUMNS WHERE INDEX_OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_TAB_COMMENTS</id>
+            <schema/>
+            <name>ALL_TAB_COMMENTS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_TAB_COMMENTS WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_COL_COMMENTS</id>
+            <schema/>
+            <name>ALL_COL_COMMENTS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT * FROM ALL_COL_COMMENTS WHERE OWNER = 'SH']]></sql>
+        </table>
+
+        <table>
+            <id>ALL_TAB_PARTITIONS</id>
+            <schema/>
+            <name>ALL_TAB_PARTITIONS</name>
+            <load-type>FULL</load-type>
+            <auto-load-range/>
+            <statistics>
+                <sum-columns/>
+            </statistics>
+            <sql><![CDATA[SELECT TABLE_OWNER, TABLE_NAME, HIGH_VALUE_CLOB, HIGH_VALUE_JSON FROM ALL_TAB_PARTITIONS]]></sql>
+        </table>
+
+    </metadata>
+
+</sql-config>
+<!-- End of Script SELECT TABLE_OWNER, TABLE_NAME, HIGH_VALUE_CLOB, HIGH_VALUE_JSON FROM ALL_TAB_PARTITIONS -->

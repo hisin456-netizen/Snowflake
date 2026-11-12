@@ -1,0 +1,67 @@
+x-airflow-common: &airflow-common
+  image: apache/airflow:3.3.2                        # 이미 받아둔 이미지
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor           # 단일 서버 병렬 실행
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow  # 메타DB 접속 정보
+    AIRFLOW__CORE__LOAD_EXAMPLES: "true"            # 예제 DAG 오픈
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/  # worker → API 서버 통신
+    AIRFLOW__API_AUTH__JWT_SECRET: my-super-secret-jwt-key-change-me  # 컴포넌트 간 토큰 서명 키 (전부 동일해야 함)
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"           # 로그인 계정 admin / 역할 admin
+  volumes:
+    - ./dags:/opt/airflow/dags                       # DAG 폴더 연결
+    - ./logs:/opt/airflow/logs                       # 로그 폴더 연결
+    - ./plugins:/opt/airflow/plugins                 # 플러그인 폴더 연결
+  depends_on:
+    postgres:
+      condition: service_healthy                     # postgres 준비된 후 시작
+
+services:
+  postgres:                                          # Airflow 메타데이터 DB
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - pg_data:/var/lib/postgresql/data             # 데이터 유지용 볼륨
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]   # 접속 가능 여부 확인
+      interval: 10s
+      retries: 5
+
+  airflow-init:                                      # 최초 1회: 메타DB 테이블 생성
+    <<: *airflow-common
+    command: airflow db migrate
+    restart: "no"
+
+  airflow-apiserver:                                 # 웹 UI + API
+    <<: *airflow-common
+    command: airflow api-server
+    ports:
+      - "8081:8080"                                  # 호스트 8081 (기존 컨테이너와 포트 충돌 방지)
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  airflow-scheduler:                                 # DAG 스케줄링
+    <<: *airflow-common
+    command: airflow scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+  airflow-dag-processor:                             # DAG 파일 파싱 전담 (Airflow 3 필수)
+    <<: *airflow-common
+    command: airflow dag-processor
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:

@@ -1,0 +1,14 @@
+# 비밀값
+.env
+
+# 데이터 볼륨 / 런타임 산출물
+rustfs/data/
+airflow/logs/
+dev/logs/
+dev/query-results/
+__pycache__/
+*.pyc
+
+# 로컬 Claude 설정
+.claude/settings.local.json
+snowflake/setup/PAT.sql
